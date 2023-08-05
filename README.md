@@ -8,4 +8,5 @@ yarn add @project-serum/anchor
 yarn add @metaplex-foundation/mpl-bubblegum
 yarn add @solana/spl-account-compression
 yarn add typescript
-
+yarn add axios
+yarn add @types/bn.js --save-dev
