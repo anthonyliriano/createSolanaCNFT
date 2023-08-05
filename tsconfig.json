@@ -5,7 +5,19 @@
         "target": "es6",
         "moduleResolution": "node",
         "sourceMap": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "preserveWatchOutput": true,
+        "emitDeclarationOnly": false,
+        "importHelpers": false,
+        "strict": true,
+        "noUnusedLocals": true,
+        "noFallthroughCasesInSwitch": true,
+        "downlevelIteration": true,
+        "allowSyntheticDefaultImports": true,
+        "incremental": false,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "useUnknownInCatchVariables": false
     },
     "lib": [
         "es2015"
