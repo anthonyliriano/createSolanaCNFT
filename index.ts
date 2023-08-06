@@ -225,6 +225,7 @@ async function setupTreeWithCompressedNFT(
         commitment: "confirmed",
         skipPreflight: true
     });
+    
     return {
         merkleTree
     }
