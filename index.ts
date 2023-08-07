@@ -9,13 +9,14 @@ import { Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransacti
 import { WrappedConnection } from "./ConnectionWrapper";
 
 
-async function createCompressedNFT(name : string, symbol : string, creators: Creator[]) : Promise<MetadataArgs> 
+//define the specific metadata for the single NFT
+function defineNFTMetadata(name : string, symbol : string, uri : string, creators: Creator[]) : MetadataArgs 
 {
     return {
-        name: "Builder Ape #1234",
-        symbol: "BAPE",
-        uri: "https://qhz36tsgfw2qs3hpjjjzugw5ga6p3jptcrox6ilgi2ucek6qrrvq.arweave.net/gfO_TkYttQls70pTmhrdMDz9pfMUXX8hZkaoIivQjGs",
-        creators: [],
+        name: name,
+        symbol: symbol,
+        uri: uri,
+        creators: creators,
         editionNonce: 253,
         tokenProgramVersion: TokenProgramVersion.Original,
         tokenStandard: TokenStandard.NonFungible,
@@ -30,7 +31,7 @@ async function createCompressedNFT(name : string, symbol : string, creators: Cre
 async function setupTreeWithCompressedNFT(
     connectionWrapper: WrappedConnection,
     payerKeypair: Keypair,
-    compressedNFT: MetadataArgs,
+    nftMetadata: MetadataArgs,
     maxDepth : number = 14,
     maxBufferSize: number = 64 ) 
 {
@@ -52,8 +53,6 @@ async function setupTreeWithCompressedNFT(
     
     console.log("collectionMint: " + collectionMint);
 
-    let mintAuthority = await createAssociatedTokenAccount(connectionWrapper, payerKeypair, collectionMint, payer, undefined, undefined, undefined);
-    console.log('Mint Authority: ' + mintAuthority)
     const mintTokenAccount = await createAssociatedTokenAccount(connectionWrapper, payerKeypair, collectionMint, collectionMint, undefined, undefined, undefined);//collectionMint.createAccount(payer)
     // console.log('Associated Token Account: ' + mintTokenAccount);
     //Send the token to an associated token account, not to a wallet address: https://solana.stackexchange.com/questions/3386/invalid-account-data-for-instruction-when-trying-to-transfer-usdc-tokens
@@ -201,7 +200,7 @@ async function setupTreeWithCompressedNFT(
             tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID
         },
         {
-            metadataArgs: Object.assign(compressedNFT, {
+            metadataArgs: Object.assign(nftMetadata, {
                 collection: {key: collectionMint, verified: false}
             })
         }
@@ -225,7 +224,7 @@ async function setupTreeWithCompressedNFT(
         commitment: "confirmed",
         skipPreflight: true
     });
-    
+
     return {
         merkleTree
     }
@@ -234,18 +233,15 @@ async function setupTreeWithCompressedNFT(
 async function main() {
     const rpcUrl = "https://rpc-devnet.aws.metaplex.com/";
     const connectionString = "https://liquid.devnet.rpcpool.com/5ebea512d12be102f53d319dafc8";
+    const payer = Keypair.fromSeed(new TextEncoder().encode("goodbye world".padEnd(32, "\0")))
 
-    const connectionWrapper = new WrappedConnection(
-        Keypair.fromSeed(new TextEncoder().encode("goodbye world".padEnd(32, "\0"))),
-        connectionString,
-        rpcUrl
-    );
+    const connectionWrapper = new WrappedConnection(payer, connectionString, rpcUrl);
 
     console.log("payer", connectionWrapper.provider.wallet.publicKey.toBase58());
 
     //Creates Metadata
-    let originalCompressedNFT = await createCompressedNFT("test", "test", []);
-    console.log(originalCompressedNFT);
+    let originalCompressedNFT = defineNFTMetadata("Builder Ape #1234", "BAPE", 
+        "https://qhz36tsgfw2qs3hpjjjzugw5ga6p3jptcrox6ilgi2ucek6qrrvq.arweave.net/gfO_TkYttQls70pTmhrdMDz9pfMUXX8hZkaoIivQjGs", []);
 
     let result = await setupTreeWithCompressedNFT(connectionWrapper, 
         connectionWrapper.payer, originalCompressedNFT, 14, 64)
